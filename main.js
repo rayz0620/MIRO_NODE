@@ -29,7 +29,7 @@ SERVER_SETTINGS.hostname = 'MIRO';
 SERVER_SETTINGS.port = 4000;
 SERVER_SETTINGS.encoding = 'ascii';
 
-// --------------- Server Services --------------- //
+// --------------- Server --------------- //
 
 // Initialize server.
 server.listen( SERVER_SETTINGS.port );
@@ -38,7 +38,7 @@ server.on( 'listening', function() {
     console.log( 'Server is listening on port ' + SERVER_SETTINGS.port );
 } );
 
-// Connection form client.
+// Connection from client.
 server.on( 'connection', function( socket ) {
     console.log( 'Server has a new connection' );
 
@@ -49,7 +49,7 @@ server.on( 'connection', function( socket ) {
     var res = miro.write( { type: MIRO.RES.MIRO } );
     socket.write( res );
 
-    // Create a user.
+    // Create a new user.
     var user = new User();
 
     // Data received from client.
@@ -85,8 +85,8 @@ server.on( 'connection', function( socket ) {
         }
     } );
 
-    // Time out, 10s
-    socket.setTimeout( 15000, function() {
+    // Set time out for idle socket, 10s.
+    socket.setTimeout( 10000, function() {
         socket.write( 'Idle time out, disconnecting, bye' );
         socket.end();
     } );
@@ -121,11 +121,12 @@ server.on( 'error', function( err ) {
     console.log( 'Error occured: ' + err.message );
 } );
 
-// --------------- Response of Server --------------- //
+// --------------- Ulity Functions --------------- //
 
 // Say hello to client.
 sayHello = function( socket ) {
     var res = miro.write( { type: MIRO.RES.MIRO } );
+
     socket.write( res );
 }
 
@@ -138,19 +139,21 @@ login = function( socket, user, req ) {
         res = miro.write( { type: MIRO.RES.STATUS, para: { status: 0 }, body: MIRO.MES.PARA_MISSING } );
         socket.write( res );
     }
+
     // Check if user name already exists.
     else if ( onlineUsers.isExist( req.para.userName ) ) {
         res = miro.write( { type: MIRO.RES.STATUS, para: { status: 0 }, body: MIRO.MES.USER_ALREADY_EXIST } );
         socket.write( res );
     }
+
     // Login success.
     else {
         res = miro.write( { type: MIRO.RES.STATUS, para: { status: 1 }, body: MIRO.MES.LOGIN_SUCCESS } );
         socket.write( res );
 
         // Add user to online users.
-//        user = new User();
         user.setUser( req.para.userName, socket, socket.remoteAddress, req.para.port, 1 );
+
         onlineUsers.addUser( user );
 
         sendOnlineUsersList( user );		// Send online users list to new user.
