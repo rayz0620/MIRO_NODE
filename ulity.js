@@ -7,10 +7,8 @@
 var User = function( user ) {
     var self = this;
 
-    self.userName = user.userName;
-    self.socket = user.socket;
-    self.ip = user.ip;
-    self.port = user.port;
+    // User does not exist or off line.
+    self.state = 0;
 
     return self;
 };
@@ -20,6 +18,15 @@ User.prototype.set = function( user ) {
     this.socket = user.socket;
     this.ip = user.ip;
     this.port = user.port;
+    this.state = user.state;
+};
+
+User.prototype.setUser = function( userName, socket, ip, port, state ) {
+    this.userName = userName;
+    this.socket = socket;
+    this.ip = ip;
+    this.port = port;
+    this.state = state;
 };
 
 // Get user's userName, ip and port
@@ -42,6 +49,18 @@ User.prototype.getSocket = function() {
     return this.socket;
 };
 
+User.prototype.setState = function( state ) {
+    this.state = state;
+};
+
+User.prototype.isOnline = function() {
+    if ( this.state === 1 ) {
+        return true;
+    }
+
+    return false;
+}
+
 // OnlineUsers object.
 var OnlineUsers = function() {
     var self = this;
@@ -54,6 +73,7 @@ var OnlineUsers = function() {
 OnlineUsers.prototype.set = function( users ) {
     this.users = users;
 };
+
 
 // Get Online users information.
 // Include user's userName, ip and port.
@@ -79,6 +99,7 @@ OnlineUsers.prototype.getSockets = function() {
 
 // Check if the user already online.
 OnlineUsers.prototype.isExist = function( userName ) {
+    // problems here, return failed, all items excute.
 /*
     this.users.forEach( function( user ) {
         console.log( user.getName() );

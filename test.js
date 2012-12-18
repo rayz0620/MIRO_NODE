@@ -1,5 +1,6 @@
 // test.js
 
+/*
 var User = require( './ulity.js' ).User;
 var OnlineUsers = require( './ulity.js' ).OnlineUsers;
 
@@ -41,3 +42,44 @@ u.userName = 'wow';
 console.log( onlineUsers );
 
 console.log( onlineUsers.isExist( u.getName() ) );
+*/
+
+/*
+var User = require( './ulity' ).User;
+
+var user = new User();
+
+f = function( user ) {
+    user.port = 1;
+}
+
+f( user );
+
+console.log( user.port );	// !!! not null
+
+var user = null;
+
+f = function( user ) {
+    user = 1;
+}
+
+f( user )
+
+console.log( user );		// !!! null
+*/
+
+var User = require( './ulity' ).User;
+
+var user = new User();
+
+user.userName = 'a';
+
+console.log( user.isOnline() );
+
+f = function( theUser ) {
+    theUser = new User;
+};
+
+f( user );
+
+console.log( user.isOnline() );
