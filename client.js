@@ -21,10 +21,24 @@ client.connect( CLIENT_SETTINGS.port, CLIENT_SETTINGS.host, function() {
 
     client.setEncoding = CLIENT_SETTINGS.encoding;
 
+    // Datas from stdin.
+    // Write data until a char '#'
+    // eg:
+    //
+    // minet IamClient
+    // #
+    var datas = '';
+
     process.stdin.on( 'data', function( data ) {
 
         // Write data from stdin to socket.
-        client.write( data );
+        if ( data.toString().charAt(0) === '#' ) {
+            client.write( datas );
+            console.log( datas.toString() );
+        }
+        else {
+            datas = datas + data.toString();
+        }
     } );
 } );
 
