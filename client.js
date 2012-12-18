@@ -22,11 +22,16 @@ client.connect( CLIENT_SETTINGS.port, CLIENT_SETTINGS.host, function() {
     client.setEncoding = CLIENT_SETTINGS.encoding;
 
     // Datas from stdin.
-    // Write data until a char '#'
+    // Write datas to socket until a char '#'
     // eg:
     //
-    // minet IamClient
-    // #
+    // >> CS1.1 LOGIN hostnameHere
+    // >> Port 8000
+    // >>
+    // >>
+    // >>#
+    //
+
     var datas = '';
 
     process.stdin.on( 'data', function( data ) {
@@ -34,8 +39,6 @@ client.connect( CLIENT_SETTINGS.port, CLIENT_SETTINGS.host, function() {
         // Write data from stdin to socket.
         if ( data.toString().charAt(0) === '#' ) {
             client.write( datas );
-            console.log( datas.toString() );
-
             datas = '';
         }
         else {

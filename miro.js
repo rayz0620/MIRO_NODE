@@ -7,7 +7,10 @@ var REQ = {
     LOGIN: 11,
     LEAVE: 12,
     GETLIST: 13,
-    MESSAGE: 14
+    MESSAGE: 14,
+    BEAT: 15,
+
+    KEEP_ALIVE: 400,
 };
 
 var RES = {
@@ -15,14 +18,16 @@ var RES = {
     STATUS: 21,
     LIST: 22,
     UPDATE: 23,
-    CSMESSAGE: 24
+    CSMESSAGE: 24,
+    ERROR: 404
 };
 
 var MES = {
     PARA_MISSING: 'Some parameters missing or wrong',
     USER_ALREADY_EXIST: 'User name already exists',
     LOGIN_SUCCESS: 'Login success',
-    ILLEGAL_OPERATION: 'Illegal operation'
+    ILLEGAL_OPERATION: 'Illegal operation',
+    ILLEGAL_PROTOCOL: 'Illegal protocol'
 };
 
 var PARSER = function() {
@@ -31,6 +36,8 @@ var PARSER = function() {
         var result = {};
 
         result.para = {};
+
+//        console.log( req.toString().length );
 
         req = req.substring( 0, req.length - 1 );
         var reqParas = req.split( ' ' );
@@ -44,6 +51,7 @@ var PARSER = function() {
             result.type = REQ.LOGIN;
             result.para.userName = reqParas[1];
             result.para.port = reqParas[2];
+            result.para.keepAlive = REQ.KEEP_ALIVE;
         }
         else if ( reqParas[0] === 'leave' ) {
             result.type = REQ.LEAVE;
@@ -54,6 +62,9 @@ var PARSER = function() {
         else if ( reqParas[0] === 'message' ) {
             result.type = REQ.MESSAGE;
             result.body = reqParas[1];
+        }
+        else if ( reqParas[0] === 'beat' ) {
+            result.type = REQ.BEAT;
         }
         else {
         }

@@ -62,8 +62,6 @@ server.on( 'connection', function( socket ) {
         // Parse client request.
         var req = miro.parse( data );
 
-        console.log( req );
-
         // Check if it is legal client.
         if ( ! checkClient &&
                 ( req.type === undefined || req.type !== MIRO.REQ.MINET ) ) {
@@ -96,8 +94,11 @@ server.on( 'connection', function( socket ) {
                     break;
                 case MIRO.REQ.MESSAGE:
                     if ( user.isOnline() ) {
-                        broadcastMessage( req );
+                        broadcastMessage( user, req );
                     }
+                    break;
+                case MIRO.REQ.BEAT:
+                    // nothing to do.
                     break;
                 default:
                     break;
@@ -106,11 +107,11 @@ server.on( 'connection', function( socket ) {
     } );
 
     // Set time out for idle socket, 10s.
-/*    socket.setTimeout( 10000, function() {
+    // Time for test: 20s.
+    socket.setTimeout( 20000, function() {
         socket.write( 'Idle time out, disconnecting, bye' );
         socket.end();
     } );
-*/
 
     // Connection end.
     socket.on( 'end', function() {
@@ -227,8 +228,10 @@ logoff = function( socket, user ) {
 };
 
 // Braoadcast user message.
-broadcastMessage = function( req ) {
-    var res = miro.write( { type: MIRO.RES.CSMESSAGE, para: {userName: req.para.userName }, body: req.body } );
+broadcastMessage = function( user, req ) {
+    // Check the origin of the message.
+    // Just make userName to be: user.getName(), the real sender, instead of user in protocol.
+    var res = miro.write( { type: MIRO.RES.CSMESSAGE, para: {userName: user.getName() }, body: req.body } );
 
     onlineUsers.getSockets().forEach( function( socket ) {
         socket.write( res );
