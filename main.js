@@ -42,15 +42,19 @@ server.on( 'listening', function() {
 server.on( 'connection', function( socket ) {
     console.log( 'Server has a new connection' );
 
+//	socket.setNoDelay( true );
+
     // Set default encoding to 'ascii'.
     socket.setEncoding( SERVER_SETTINGS.encoding );
 
     // Say Hello to client.
-    var res = miro.write( { type: MIRO.RES.MIRO } );
-    socket.write( res );
+    sayHello( socket );
 
     // Create a new user.
     var user = new User();
+
+    // Record if client is using legal protocol, MI.
+    var checkClient = false;
 
     // Data received from client.
     socket.on( 'data', function( data ) {
@@ -58,38 +62,55 @@ server.on( 'connection', function( socket ) {
         // Parse client request.
         var req = miro.parse( data );
 
-        switch ( req.type ) {
-            case MIRO.REQ.MINET:
-                sayHello( socket );
-                break;
-            case MIRO.REQ.LOGIN:
-                login( socket, user, req );
-                break;
-            case MIRO.REQ.LEAVE:
-                if ( user.isOnline() ) {
-                    logoff( socket, user );
-                }
-                break;
-            case MIRO.REQ.GETLIST:
-                if ( user.isOnline() ) {
-                    sendOnlineUsersList( user );
-                }
-                break;
-            case MIRO.REQ.MESSAGE:
-                if ( user.isOnline() ) {
-                    broadcastMessage( req );
-                }
-                break;
-            default:
-                break;
+        console.log( req );
+
+        // Check if it is legal client.
+        if ( ! checkClient &&
+                ( req.type === undefined || req.type !== MIRO.REQ.MINET ) ) {
+
+            var res = miro.write( { type: MIRO.RES.ERROR, body: MIRO.MES.ILLEGAL_PROTOCOL } );
+            socket.write( res );
+        }
+        else {
+            checkClient = true;
+        }
+
+        if ( checkClient ) {
+
+            switch ( req.type ) {
+                case MIRO.REQ.MINET:
+                    sayHello( socket );
+                    break;
+                case MIRO.REQ.LOGIN:
+                    login( socket, user, req );
+                    break;
+                case MIRO.REQ.LEAVE:
+                    if ( user.isOnline() ) {
+                        logoff( socket, user );
+                    }
+                    break;
+                case MIRO.REQ.GETLIST:
+                    if ( user.isOnline() ) {
+                        sendOnlineUsersList( user );
+                    }
+                    break;
+                case MIRO.REQ.MESSAGE:
+                    if ( user.isOnline() ) {
+                        broadcastMessage( req );
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     } );
 
     // Set time out for idle socket, 10s.
-    socket.setTimeout( 10000, function() {
+/*    socket.setTimeout( 10000, function() {
         socket.write( 'Idle time out, disconnecting, bye' );
         socket.end();
     } );
+*/
 
     // Connection end.
     socket.on( 'end', function() {
@@ -125,7 +146,7 @@ server.on( 'error', function( err ) {
 
 // Say hello to client.
 sayHello = function( socket ) {
-    var res = miro.write( { type: MIRO.RES.MIRO } );
+    var res = miro.write( { type: MIRO.RES.MIRO, para: { hostname: SERVER_SETTINGS.hostname } } );
 
     socket.write( res );
 }
@@ -148,6 +169,16 @@ login = function( socket, user, req ) {
 
     // Login success.
     else {
+
+        // Set connection keep-alive if requested.
+        if ( req.para !== undefined &&
+                req.para.connection === MIRO.REQ.KEEP_ALIVE ) {
+
+            if ( typeof( req.para.keepAlive ) === Number && req.para.keepAlive >= 0  ) {
+                socket.setKeepAlive( true, req.para.keepAlive );
+            }
+        }
+
         res = miro.write( { type: MIRO.RES.STATUS, para: { status: 1 }, body: MIRO.MES.LOGIN_SUCCESS } );
         socket.write( res );
 
@@ -197,7 +228,7 @@ logoff = function( socket, user ) {
 
 // Braoadcast user message.
 broadcastMessage = function( req ) {
-    var res = miro.write( { type: MIRO.RES.CSMESSAGE, body: req.body } );
+    var res = miro.write( { type: MIRO.RES.CSMESSAGE, para: {userName: req.para.userName }, body: req.body } );
 
     onlineUsers.getSockets().forEach( function( socket ) {
         socket.write( res );

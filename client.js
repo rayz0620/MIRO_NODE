@@ -35,6 +35,8 @@ client.connect( CLIENT_SETTINGS.port, CLIENT_SETTINGS.host, function() {
         if ( data.toString().charAt(0) === '#' ) {
             client.write( datas );
             console.log( datas.toString() );
+
+            datas = '';
         }
         else {
             datas = datas + data.toString();
