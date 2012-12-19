@@ -24,7 +24,8 @@ var MES = {
     PARA_MISSING : 'Some parameters missing or wrong',
     USER_ALREADY_EXIST : 'User name already exists',
     LOGIN_SUCCESS : 'Login success',
-    ILLEGAL_OPERATION : 'Illegal operation'
+    ILLEGAL_OPERATION : 'Illegal operation',
+    ALREADY_LOGIN: 'You have alreay logged in'
 };
 
 var PARSER = function() {
