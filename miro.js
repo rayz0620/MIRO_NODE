@@ -37,7 +37,7 @@ var PARSER = function() {
         var head = headAndBody[0];
         var body = headAndBody[1];
         var headLines = head.split('\n');
-        var requestLine = headLines[0];
+        var requestLine = headLines[0].split(' ');
         var parsed = {
             type : '',
             para : {},
@@ -48,35 +48,34 @@ var PARSER = function() {
         if (requestLine[0] === 'MINET') {
             parsed.type = REQ.MINET;
             if (requestLine[1] != undefined) {
-                parsed.hostname = requestLine[1];
-                parsed.correct = true;
+                parsed.para.hostname = requestLine[1];
             }
         } else if (requestLine[0].match(/CS[0-9].[0-9]+/) != null) {
-            parsed.request.type = requestLine[0].slice(0, 1);
-            parsed.request.version = requestLine[0].slice(2);
+            parsed.para.requesttype = requestLine[0].slice(0, 1);
+            parsed.para.requestversion = requestLine[0].slice(2);
 
             // Resolve method type
             if (requestLine[1] != undefined)
                 parsed.type = REQ[requestLine[1]];
 
-            if (requestLine[1] === 'LEAVE' || requestLine[0] === 'MESSAGE' || requestLine[1] === 'BEAT') {
+            if (parsed.type === REQ['LEAVE'] || parsed.type === REQ['MESSAGE'] || parsed.type === REQ['BEAT'] || parsed.type === REQ['LOGIN']) {
                 if (requestLine[2] != undefined)
-                    parsed.para.username = requestLine[2];
+                    parsed.para.userName = requestLine[2];
             }
         }
 
         // Process Header part
         for (var i = 1; i < headLines.length; i++) {
-            var thisline = headLines[i];
+            var thisline = headLines[i].split(' ');
             if (thisline[0] != undefined && thisline[1] != undefined) {
-                parsed.para[thisline[0]] = thisline[1];
+                parsed.para[thisline[0].toLowerCase()] = thisline[1];
             }
         }
 
         //Process Body part
         parsed.body = body;
 
-        if(validate(parsed))
+        if(this.validate(parsed))
             return parsed;
         else return RES.ERROR;
 
@@ -96,10 +95,11 @@ var PARSER = function() {
 
             case RES.LIST:
                 var body = '';
-                for (var i = 0; i < res.bodyArray.length; i++) {
-                    body += res.body[i].username + ' ' + res.body[i].port + '\n';
+                for (var i = 0; i < res.body.length; i++) {
+                    body += res.body[i].userName + ' ' + res.body[i].ip + ' ' + res.body[i].port + '\n';
                 }
-                response += 'LIST' + ' ' + '\n' + this.getCommonHead(body.length) + body;
+                response += 'LIST' + ' ' + '\n' + this.getDate() + this.getContentLength(res.body.length) + body;
+                break;
 
             case RES.UPDATE:
                 response += 'UPDATE' + res.para.status + ' ' + res.para.userName + '\n' + this.getDate();
@@ -111,7 +111,7 @@ var PARSER = function() {
 
             case RES.CSMESSAGE:
                 var body = res.body;
-                response += 'CMESSAGE' + ' ' + res.para.username + '\n' + this.getDate + this.getContentLength(body.length) + body;
+                response += 'CMESSAGE' + ' ' + res.para.userName + '\n' + this.getDate + this.getContentLength(body.length) + body;
                 break;
         }
         return response;
@@ -119,7 +119,7 @@ var PARSER = function() {
 
     this.getDate = function() {
         var date = new Date();
-        return ('DATE:' + ' ' + date.toUTCString + '\n' );
+        return ('DATE:' + ' ' + date.toUTCString() + '\n' );
     }
 
     this.getContentLength = function(contentLength) {
@@ -134,15 +134,15 @@ var PARSER = function() {
                 case REQ.MINET:
                     return !(parsed.para.hostname === undefined);
                 case REQ.LOGIN:
-                    return !(parsed.para.username === undefined || parsed.para.port === undefined || !this.validatePort(parsed.para.port));
+                    return !(parsed.para.userName === undefined || parsed.para.port === undefined || !this.validatePort(parsed.para.port));
                 case REQ.LEAVE:
-                    return !(parsed.para.username === undefined );
+                    return !(parsed.para.userName === undefined );
                 case REQ.GETLIST:
                     return true;
                 case REQ.MESSAGE:
-                    return !(parsed.username === undefined || parsed.body === undefined || parsed.body === '');
+                    return !(parsed.userName === undefined || parsed.body === undefined || parsed.body === '');
                 case REQ.BEAT:
-                    return !(parsed.username === undefined);
+                    return !(parsed.userName === undefined);
                 default:
                     return false;
             }

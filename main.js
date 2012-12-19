@@ -90,7 +90,8 @@ server.on('connection', function(socket) {
     });
 
     // Set time out for idle socket, 10s.
-    socket.setTimeout(10000, function() {
+    // socket.setTimeout(10000, function() {
+    socket.setTimeout(1000000, function() {//For debug use
         socket.write('Idle time out, disconnecting, bye');
         socket.end();
     });
