@@ -49,7 +49,8 @@ server.on('connection', function(socket) {
     // var res = miro.write({
         // type : MIRO.RES.MIRO
     // });
-    // socket.write(res);    sayHello(socket);
+    // socket.write(res);
+    sayHello(socket);
     
 
     // Create a new user.

@@ -21,10 +21,29 @@ client.connect( CLIENT_SETTINGS.port, CLIENT_SETTINGS.host, function() {
 
     client.setEncoding = CLIENT_SETTINGS.encoding;
 
+    // Datas from stdin.
+    // Write datas to socket until a char '#'
+    // eg:
+    //
+    // >> CS1.1 LOGIN hostnameHere
+    // >> Port 8000
+    // >>
+    // >>
+    // >>#
+    //
+
+    var datas = '';
+
     process.stdin.on( 'data', function( data ) {
 
         // Write data from stdin to socket.
-        client.write( data );
+        if ( data.toString().charAt(0) === '#' ) {
+            client.write( datas );
+            datas = '';
+        }
+        else {
+            datas = datas + data.toString();
+        }
     } );
 } );
 

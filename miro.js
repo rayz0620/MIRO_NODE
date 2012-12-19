@@ -78,42 +78,10 @@ var PARSER = function() {
 
         if(validate(parsed))
             return parsed;
-        else return RES.ERROR;
+        else return RES.ERROR;
+
         return parsed;
     }
-    // this.parse = function( req ) {
-    //     var result = {};
-
-    //     result.para = {};
-
-    //     req = req.substring( 0, req.length - 1 );
-    //     var reqParas = req.split( ' ' );
-
-    //    // console.log( reqParas );
-
-    //     if ( reqParas[0] === 'minet' ) {
-    //         result.type = REQ.MINET;
-    //     }
-    //     else if ( reqParas[0] === 'login' ) {
-    //         result.type = REQ.LOGIN;
-    //         result.para.userName = reqParas[1];
-    //         result.para.port = reqParas[2];
-    //     }
-    //     else if ( reqParas[0] === 'leave' ) {
-    //         result.type = REQ.LEAVE;
-    //     }
-    //     else if ( reqParas[0] === 'getlist' ) {
-    //         result.type = REQ.GETLIST;
-    //     }
-    //     else if ( reqParas[0] === 'message' ) {
-    //         result.type = REQ.MESSAGE;
-    //         result.body = reqParas[1];
-    //     }
-    //     else {
-    //     }
-
-    //     return result;
-    // };
 
     this.write = function(res) {
         var response = 'CS1.1 ';
@@ -148,42 +116,7 @@ var PARSER = function() {
         }
         return response;
     }
-    // this.write = function( res ) {
-    //     var result;
 
-    //     switch ( res.type ) {
-    //         case RES.MIRO:
-    //             result = 'miro';
-    //             break;
-    //         case RES.STATUS:
-    //             result = res.para.status + ' ' + res.body;
-    //             break;
-    //         case RES.LIST:
-    //             result = 'current online users: ';
-    //             for ( var i = 0; i < res.body.length; i++ ) {
-    //                 result = result + res.body[i].userName + ' ';
-    //             }
-    //             break;
-    //         case RES.UPDATE:
-    //             if ( res.para.status === 1 ) {
-    //                 result = res.para.status + ' ' + res.para.userName + ' login';
-    //             }
-    //             else {
-    //                 result = res.para.status + ' ' + res.para.userName + ' logoff';
-    //             }
-    //             break;
-    //         case RES.ERROR:
-    //             result = res.body;
-    //             break;
-    //         case RES.CSMESSAGE:
-    //             result = res.body;
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    //
-    // return result;
-    // };
     this.getDate = function() {
         var date = new Date();
         return ('DATE:' + ' ' + date.toUTCString + '\n' );
@@ -220,7 +153,8 @@ var PARSER = function() {
             return true;
         else
             return false;
-    }
+    }
+
     return this;
 };
 
