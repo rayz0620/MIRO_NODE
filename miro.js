@@ -52,7 +52,7 @@ var PARSER = function() {
                 parsed.para.hostname = requestLine[1];
             }
         } else if (requestLine[0].match(/CS[0-9].[0-9]+/) != null) {
-            parsed.para.requesttype = requestLine[0].slice(0, 1);
+            parsed.para.requesttype = requestLine[0].slice(0, 2);
             parsed.para.requestversion = requestLine[0].slice(2);
 
             // Resolve method type
@@ -61,7 +61,7 @@ var PARSER = function() {
 
             if (parsed.type === REQ['LEAVE'] || parsed.type === REQ['MESSAGE'] || parsed.type === REQ['BEAT'] || parsed.type === REQ['LOGIN']) {
                 if (requestLine[2] != undefined)
-                    parsed.para.userName = requestLine[2];
+                    parsed.para.userName = requestLine[2].trim();
             }
         }
 
@@ -69,7 +69,7 @@ var PARSER = function() {
         for (var i = 1; i < headLines.length; i++) {
             var thisline = headLines[i].split(' ');
             if (thisline[0] != undefined && thisline[1] != undefined) {
-                parsed.para[thisline[0].toLowerCase()] = thisline[1];
+                parsed.para[thisline[0].toLowerCase().trim()] = thisline[1];
             }
         }
 
