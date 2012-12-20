@@ -44,11 +44,12 @@ server.on( 'connection', function( socket ) {
     // Set default encoding to 'ascii'.
     socket.setEncoding( SERVER_SETTINGS.encoding );
 
-    // Say Hello to client.
+    // Say Hello to client at first.
     sayHello( socket );
 
     // Record if client is using legal protocol, MINET.
-    var checkClient = false;
+//    var checkClient = false;
+    var checkClient = true;
 
     // Create a new user.
     var user = new User();
@@ -56,50 +57,114 @@ server.on( 'connection', function( socket ) {
     // Data received from client.
     socket.on( 'data', function( data ) {
 
-        // Parse client request.
-        var req = miro.parse( data );
+        var req = miro.parse( data );		// Parse client request.
+        var res;							// Server response.
+
+        console.log( req );
 
         // Check if it is legal client.
-        if ( ! checkClient &&
-                            ( req.type === undefined || req.type !== MIRO.REQ.MINET ) ) {
-            var res = miro.write(
-                        {
-                            type: MIRO.RES.ERROR,
-                            body: MIRO.MES.ILLEGAL_PROTOCOL
-                        } );
-            socket.write( res );
-        } else {
-            checkClient = true;
+        if ( ! checkClient ) {
+            if ( req.type === MIRO.REQ.MINET ) {
+                checkClient = true;
+            }
+            else {
+                res = miro.write(
+                            {
+                                type: MIRO.RES.STATUS,
+                                para: {
+                                    status: 0
+                                },
+                                body: MIRO.MES.ILLEGAL_PROTOCOL
+                            } );
+
+                socket.write( res );
+            }
         }
 
-        switch ( req.type ) {
-            case MIRO.REQ.MINET:
-                sayHello( socket );
-                break;
-            case MIRO.REQ.LOGIN:
-                login( socket, user, req );
-                break;
-            case MIRO.REQ.LEAVE:
-                if ( user.isOnline() ) {
-                    logoff( socket, user );
+        // Deal with legal MINET request.
+        if ( checkClient ) {
+            if ( reqType === MIRO.REQ.MINET ) {
+                // nothing to do when client say hello,
+                // since protocol checked already.
+            }
+            else if ( reqType === MIRO.REQ.LOGIN ) {
+
+                // Log in requst.
+                if ( ! user.isOnline() ) {
+                    login( socket, user, req );
                 }
-                break;
-            case MIRO.REQ.GETLIST:
-                if ( user.isOnline() ) {
-                    sendOnlineUsersList( user );
+                else {
+
+                    // Error: user is alreay online.
+                    res = miro.write(
+                                {
+                                    type: MIRO.RES.STATUS,
+                                    para: {
+                                        status: 0
+                                    },
+                                    body: MIRO.MES.ALREADY_LOGIN
+                                } );
+
+                    socket.write( res );
                 }
-                break;
-            case MIRO.REQ.MESSAGE:
+            }
+            else if ( reqType === MIRO.REQ.GETLIST
+                       || reqType === MIRO.REQ.MESSAGE
+                       || reqType === MIRO.REQ.BEAT
+                       || reqType === MIRO.REQ.LEAVE ) {
+
+                console.log( reqType );
+
+                // Online users requests.
                 if ( user.isOnline() ) {
-                    broadcastMessage( user, req );
+                    switch( reqType ) {
+                        case MIRO.REQ.GETLIST:			// Get online users.
+                            sendOnlineUsersList( user );
+                            break;
+                        case MIRO.REQ.MESSAGE:			// Send message.
+                            broadcastMessage( user.getName(), req.body );
+                            break;
+                        case MIRO.REQ.BEAT:				// Beat.
+                            // nothing to do
+                            break;
+                        case MIRO.REQ.LEAVE:
+                            logoff( user );				// User leave.
+                            break;
+                        default:
+                            break;
+                    }
                 }
-                break;
-            case MIRO.REQ.BEAT:
-                // nothing to do.
-                break;
-            default:
-                break;
+                else {
+
+                    // Error: User has not logged in.
+                    res = miro.write(
+                                {
+                                    type: MIRO.RES.STATUS,
+                                    para: {
+                                        status: 0
+                                    },
+                                    body: MIRO.MES.NOT_LOG_IN
+                                } );
+
+                    socket.write( res );
+                }
+            }
+            else {
+
+                // Error: Illegal request, not defined in MINET.
+                res = miro.write(
+                            {
+                                type: MIRO.RES.STATUS,
+                                para: {
+                                    status: 0
+                                },
+                                body: MIRO.MES.ILLEGAL_REQUEST
+                            } );
+
+                socket.write( res );
+            }
         }
+
     } );
 
     // Set time out for idle socket, 10s.
@@ -114,7 +179,7 @@ server.on( 'connection', function( socket ) {
         console.log( 'Connection end' );
 
         if ( user.isOnline() ) {
-            logoff( socket, user );
+            logoff( user );
         }
     } );
 
@@ -123,7 +188,7 @@ server.on( 'connection', function( socket ) {
         console.log( 'Connection close' );
 
         if ( user.isOnline() ) {
-            logoff( socket, user );
+            logoff( user );
         }
     } );
 
@@ -157,18 +222,6 @@ sayHello = function( socket ) {
 // User login in.
 var login = function( socket, user, req ) {
     var res;
-
-    // Check if it has already logged in.
-    if ( user.isOnline() ) {
-        res = miro.write(
-                    {
-                        type: MIRO.RES.ERROR,
-                        body: MIRO.MES.ALREADY_LOGIN
-                    } );
-
-        miro.write( res );
-        return;
-    }
 
     // Login failed if some parameters missing.
     if ( req.para.userName === undefined || req.para.port === undefined ) {
@@ -229,6 +282,7 @@ var login = function( socket, user, req ) {
         broadcastUpdate( user, 1 );		// Broadcast update to other online users.
     }
 }
+
 // Send current online users information to the user.
 var sendOnlineUsersList = function( user ) {
     var res;
@@ -259,11 +313,11 @@ var broadcastUpdate = function( user, state ) {
         if ( otherUserSocket !== user.getSocket() ) {
             otherUserSocket.write( res );
         }
-    });
+    } );
 };
 
 // User leave, log off.
-var logoff = function( socket, user ) {
+var logoff = function( user ) {
     if ( user.getName() !== undefined && onlineUsers.isExist( user.getName() ) ) {
         broadcastUpdate( user, 0 );
 
@@ -275,15 +329,12 @@ var logoff = function( socket, user ) {
 };
 
 // Braoadcast user message.
-var broadcastMessage = function( user, req ) {
-
-    // Check the origin of the message,
-    // just make user name to be user.getName(), instead of the name in protocol.
+var broadcastMessage = function( userName, mes ) {
     var res = miro.write(
                 {
                     type : MIRO.RES.CSMESSAGE,
-                    para: { userName: user.getName() },
-                    body : req.body
+                    para: { userName: userName },
+                    body : mes
                 } );
 
     onlineUsers.getSockets().forEach( function( socket ) {
