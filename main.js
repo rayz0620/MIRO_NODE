@@ -48,8 +48,7 @@ server.on( 'connection', function( socket ) {
     sayHello( socket );
 
     // Record if client is using legal protocol, MINET.
-//    var checkClient = false;
-    var checkClient = true;
+    var checkClient = false;
 
     // Create a new user.
     var user = new User();
@@ -83,6 +82,10 @@ server.on( 'connection', function( socket ) {
 
         // Deal with legal MINET request.
         if ( checkClient ) {
+
+            // Get request type.
+            var reqType = req.type;
+
             if ( reqType === MIRO.REQ.MINET ) {
                 // nothing to do when client say hello,
                 // since protocol checked already.
