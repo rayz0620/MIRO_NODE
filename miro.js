@@ -37,9 +37,9 @@ var PARSER = function() {
         if ( typeof msg != 'string')
             throw new Error('Parameter is not of type String');
 
-        var headAndBody = msg.split('\n\n');
-        var head = headAndBody[0];
-        var body = headAndBody[1];
+        var headAndBody = msg.split(/[\n\r]{3,}/);
+        var head = headAndBody[0].trim();
+        var body = headAndBody[1].trim();
         var headLines = head.split('\n');
         var requestLine = headLines[0].split(' ');
         var parsed = {
@@ -52,7 +52,7 @@ var PARSER = function() {
         if (requestLine[0] === 'MINET') {
             parsed.type = REQ.MINET;
             if (requestLine[1] != undefined) {
-                parsed.para.hostname = requestLine[1];
+                parsed.para.hostname = requestLine[1].trim();
             }
         } else if (requestLine[0].match(/CS[0-9].[0-9]+/) != null) {
             parsed.para.requesttype = requestLine[0].slice(0, 2);
@@ -72,16 +72,12 @@ var PARSER = function() {
         for (var i = 1; i < headLines.length; i++) {
             var thisline = headLines[i].split(' ');
             if (thisline[0] != undefined && thisline[1] != undefined) {
-                parsed.para[thisline[0].toLowerCase().trim()] = thisline[1];
+                parsed.para[thisline[0].toLowerCase().trim()] = thisline[1].trim();
             }
         }
 
         //Process Body part
-        parsed.body = body;
-
-        if(this.validate(parsed))
-            return parsed;
-        else return RES.ERROR;
+        parsed.body = body.trim;
 
         return parsed;
     }
@@ -106,7 +102,7 @@ var PARSER = function() {
                 break;
 
             case RES.UPDATE:
-                response += 'UPDATE' + res.para.status + ' ' + res.para.userName + '\n' + this.getDate();
+                response += 'UPDATE' + ' ' + res.para.status + ' ' + res.para.userName + '\n' + this.getDate();
                 break;
 
             case RES.ERROR:
