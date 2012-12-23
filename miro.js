@@ -123,7 +123,7 @@ var PARSER = function() {
 
             case RES.CSMESSAGE:
                 var body = res.body;
-                response += 'CMESSAGE' + ' ' + res.para.userName + '\n' + this.getDate() + this.getContentLength(body.length) + body;
+                response += 'CMESSAGE' + ' ' + res.para.userName + '\n' + this.getDate() + this.getContentLength(body.length) + '\n' + body;
                 break;
         }
         return response;
