@@ -37,7 +37,7 @@ var PARSER = function() {
         if ( typeof msg != 'string')
             throw new Error('Parameter is not of type String');
 
-        var headAndBody = msg.split(/[\n\r]{3,}/);
+        var headAndBody = msg.split(/\r?\n\r?\n/);
 
         var head;
         if (headAndBody[0] != undefined)
