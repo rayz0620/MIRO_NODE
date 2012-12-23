@@ -17,7 +17,7 @@ var RES = {
     LIST : 22,
     UPDATE : 23,
     CSMESSAGE : 24,
-    ERROR: -1
+    ERROR : -1
 };
 
 var MES = {
@@ -25,10 +25,10 @@ var MES = {
     USER_ALREADY_EXIST : 'User name already exists',
     LOGIN_SUCCESS : 'Login success',
     ILLEGAL_OPERATION : 'Illegal operation',
-    ALREADY_LOGIN: 'You have alreay logged in',
-    ILLEGAL_PROTOCOL: 'Unrecogonized protocol',
-    ILLEGAL_REQUEST: 'Illegal request',
-    NOT_LOG_IN: 'You have not logged in'
+    ALREADY_LOGIN : 'You have alreay logged in',
+    ILLEGAL_PROTOCOL : 'Unrecogonized protocol',
+    ILLEGAL_REQUEST : 'Illegal request',
+    NOT_LOG_IN : 'You have not logged in'
 };
 
 var PARSER = function() {
@@ -38,8 +38,19 @@ var PARSER = function() {
             throw new Error('Parameter is not of type String');
 
         var headAndBody = msg.split(/[\n\r]{3,}/);
-        var head = headAndBody[0].trim();
-        var body = headAndBody[1].trim();
+
+        var head;
+        if (headAndBody[0] != undefined)
+            head = headAndBody[0].trim();
+        else
+            head = '';
+
+        var body;
+        if (headAndBody[1] != undefined)
+            body = headAndBody[1].trim();
+        else
+            body = '';
+
         var headLines = head.split('\n');
         var requestLine = headLines[0].split(' ');
         var parsed = {
@@ -77,7 +88,8 @@ var PARSER = function() {
         }
 
         //Process Body part
-        parsed.body = body.trim;
+        if (body != undefined)
+            parsed.body = body.trim();
 
         return parsed;
     }
